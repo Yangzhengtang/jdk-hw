@@ -1256,6 +1256,8 @@ public class JavacParser implements Parser {
             }
 
             JCExpression expr = term3();
+            //  Add something here.
+            System.out.println(expr);
 
             if ((mode & TYPE) == 0) {
                 // Type annotations on class literals no longer legal
