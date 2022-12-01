@@ -386,6 +386,18 @@ public class TreeMaker implements JCTree.Factory {
         return tree;
     }
 
+    public JCDoubleBracketTerm ApplyNewTerm(List<JCExpression> args)
+    {
+        String needToPrint = System.getenv("ZTDEBUG") ;
+        if(needToPrint != null && needToPrint.equals("YES")){
+            System.out.println("Entering the \"ApplyNewTerm\"");
+        }
+        JCDoubleBracketTerm tree = new JCDoubleBracketTerm(args);
+        tree.pos = pos;
+        return tree;
+    }
+
+
     public JCMethodInvocation Apply(List<JCExpression> typeargs,
                        JCExpression fn,
                        List<JCExpression> args)

@@ -899,13 +899,25 @@ public class JavaTokenizer extends UnicodeReader {
                     break loop;
 
                 case '[': // (Spec. 3.12)
-                    next();
-                    tk = TokenKind.LBRACKET;
+                    if (accept("[[")) {
+                        put("[[");
+                        tk = TokenKind.LDOUBLEBRACKET;
+                    }
+                    else{
+                        next();
+                        tk = TokenKind.LBRACKET;
+                    }
                     break loop;
 
                 case ']': // (Spec. 3.12)
-                    next();
-                    tk = TokenKind.RBRACKET;
+                    if (accept("]]")) {
+                        put("]]");
+                        tk = TokenKind.RDOUBLEBRACKET;
+                    }
+                    else{
+                        next();
+                        tk = TokenKind.RBRACKET;
+                    }
                     break loop;
 
                 case '{': // (Spec. 3.12)

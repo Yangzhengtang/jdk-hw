@@ -1775,6 +1775,45 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
             return ASSERT;
         }
     }
+    
+    public static class JCDoubleBracketTerm extends JCPolyExpression implements MethodInvocationTree {
+        public List<JCExpression> typeargs;
+        public JCExpression meth;
+        public List<JCExpression> args;
+        public Type varargsElement;
+        protected JCDoubleBracketTerm(List<JCExpression> args)
+        {
+            this.args = args;
+        }
+        @Override
+        public void accept(Visitor v) { v.visitApply(this); }
+
+        @DefinedBy(Api.COMPILER_TREE)
+        public Kind getKind() { return Kind.METHOD_INVOCATION; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getTypeArguments() {
+            return typeargs;
+        }
+        @DefinedBy(Api.COMPILER_TREE)
+        public JCExpression getMethodSelect() { return meth; }
+        @DefinedBy(Api.COMPILER_TREE)
+        public List<JCExpression> getArguments() {
+            return args;
+        }
+        @Override @DefinedBy(Api.COMPILER_TREE)
+        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+            return v.visitMethodInvocation(this, d);
+        }
+        @Override
+        public JCDoubleBracketTerm setType(Type type) {
+            super.setType(type);
+            return this;
+        }
+        @Override
+        public Tag getTag() {
+            return(APPLY);
+        }
+    }
 
     /**
      * A method invocation
@@ -3361,6 +3400,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         JCMethodInvocation Apply(List<JCExpression> typeargs,
                     JCExpression fn,
                     List<JCExpression> args);
+        JCDoubleBracketTerm ApplyNewTerm(List<JCExpression> args);
         JCNewClass NewClass(JCExpression encl,
                           List<JCExpression> typeargs,
                           JCExpression clazz,
@@ -3431,6 +3471,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public void visitThrow(JCThrow that)                 { visitTree(that); }
         public void visitAssert(JCAssert that)               { visitTree(that); }
         public void visitApply(JCMethodInvocation that)      { visitTree(that); }
+        public void visitApply(JCDoubleBracketTerm that)     { visitTree(that); }
         public void visitNewClass(JCNewClass that)           { visitTree(that); }
         public void visitNewArray(JCNewArray that)           { visitTree(that); }
         public void visitLambda(JCLambda that)               { visitTree(that); }

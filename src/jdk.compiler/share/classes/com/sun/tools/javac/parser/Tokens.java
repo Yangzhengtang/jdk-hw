@@ -163,6 +163,8 @@ public class Tokens {
         RBRACE("}"),
         LBRACKET("["),
         RBRACKET("]"),
+        LDOUBLEBRACKET("[["),
+        RDOUBLEBRACKET("]]"),
         SEMI(";"),
         COMMA(","),
         DOT("."),
@@ -248,6 +250,7 @@ public class Tokens {
             case EOF:
                 return "token.end-of-input";
             case DOT: case COMMA: case SEMI: case LPAREN: case RPAREN:
+            case LDOUBLEBRACKET: case RDOUBLEBRACKET:
             case LBRACKET: case RBRACKET: case LBRACE: case RBRACE:
                 return "'" + name + "'";
             default:

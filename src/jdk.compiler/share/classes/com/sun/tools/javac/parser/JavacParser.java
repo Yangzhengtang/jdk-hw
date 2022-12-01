@@ -926,7 +926,7 @@ public class JavacParser implements Parser {
      *  TypeNoParams2 = TypeNoParams3
      */
     JCExpression term2() {
-        JCExpression t = term3();
+        JCExpression t = wrappedTerm3();
         if ((mode & EXPR) != 0 && prec(token.kind) >= TreeInfo.orPrec) {
             selectExprMode();
             return term2Rest(t, TreeInfo.orPrec);
@@ -999,7 +999,7 @@ public class JavacParser implements Parser {
                 topOp = token;
                 nextToken();
                 top++;
-                odStack[top] = term3();
+                odStack[top] = wrappedTerm3();
             }
             while (top > 0 && prec(topOp.kind) >= prec(token.kind)) {
                 odStack[top - 1] = F.at(topOp.pos).Binary(optag(topOp.kind), odStack[top - 1], odStack[top]);
@@ -1145,11 +1145,75 @@ public class JavacParser implements Parser {
      *  TypeSelector   = "." Ident [TypeArguments]
      *  SuperSuffix    = Arguments | "." Ident [Arguments]
      */
+
+    protected JCExpression wrappedTerm3(){
+        JCExpression e = term3();
+        String needToPrint = System.getenv("ZTDEBUG") ;
+        if(needToPrint == null) return e;
+        // System.out.println(needToPrint);
+        if(needToPrint.equals("YES")){
+            System.out.println(e);
+        }
+        return e;
+    }
+
+    /* 
+    JCExpression arguments(List<JCExpression> typeArgs, JCExpression t) {
+        int pos = token.pos;
+        List<JCExpression> args = arguments();
+        JCExpression mi = F.at(pos).Apply(typeArgs, t, args);
+        if (t.hasTag(IDENT) && isInvalidUnqualifiedMethodIdentifier(((JCIdent) t).pos,
+                                                                    ((JCIdent) t).name)) {
+            log.error(DiagnosticFlag.SYNTAX, t, Errors.InvalidYield);
+            mi = F.Erroneous(List.of(mi));
+        }
+        return toP(mi);
+    }
+    */
+    
+    protected JCExpression newTerm(){
+        int pos = token.pos;
+        String needToPrint = System.getenv("ZTDEBUG") ;
+        if(needToPrint != null && needToPrint.equals("YES")){
+            System.out.println("Entering the \"newTerm\"");
+        }
+        ListBuffer<JCExpression> args = new ListBuffer<>();
+        args.append(parseExpression());
+        while (token.kind == COMMA) {
+            nextToken();
+            args.append(parseExpression());
+        }
+        List<JCExpression> exprs = args.toList();
+        JCExpression mi = F.at(pos).ApplyNewTerm(exprs);
+        if(needToPrint != null && needToPrint.equals("YES")){
+            for(JCExpression expr : exprs){
+                System.out.println("");
+                System.out.println(expr);
+            }
+            System.out.println("Leaving the \"newTerm\"");
+        }
+        return mi;
+    }
+
+
     protected JCExpression term3() {
         int pos = token.pos;
         JCExpression t;
         List<JCExpression> typeArgs = typeArgumentsOpt(EXPR);
         switch (token.kind) {
+        case LDOUBLEBRACKET:
+            //  newTerm here
+            String needToPrint = System.getenv("ZTDEBUG") ;
+            if(needToPrint != null && needToPrint.equals("YES")){
+                System.out.println("Entering the LDOUBLEBRACKET");
+            }
+            nextToken();
+            t = newTerm();
+            if(token.kind != RDOUBLEBRACKET){
+                return illegal();
+            }
+            nextToken();
+            return t;
         case QUES:
             if ((mode & TYPE) != 0 && (mode & (TYPEARG|NOPARAMS)) == TYPEARG) {
                 selectTypeMode();
@@ -1256,8 +1320,6 @@ public class JavacParser implements Parser {
             }
 
             JCExpression expr = term3();
-            //  Add something here.
-            System.out.println(expr);
 
             if ((mode & TYPE) == 0) {
                 // Type annotations on class literals no longer legal
